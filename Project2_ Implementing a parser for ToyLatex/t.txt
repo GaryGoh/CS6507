@@ -1,0 +1,26 @@
+<title>{red}ToyLatex</title>
+<paragraph>
+ToyLatex is minimalistic version of LaTeX, which is a document preparation system 
+and document markup language. Latex is widely used for the communication and publication 
+of scientific documents in many fields, including mathematics, physics, computer science, 
+statistics, economics, and political science. Latex also has a prominent role in the preparation 
+and publication of books and articles that contain complex multilingual materials, 
+such as Sanskrit and Arabic, including critical editions. This text has been taken from wikipedia.
+</paragraph>
+
+<paragraph>
+The following is a simple table typeset in Latex:
+</paragraph>
+
+<table>
+a,b,c
+1,2,3
+4,5,6
+7,8,9
+</table>
+
+<paragraph>
+And the following is a figure of our beautiful building:
+</paragraph>
+
+<figure>fig.pdf</figure>
