@@ -5,42 +5,47 @@ import sys
 import pandas
 
 
-class TxtToTex():
-    # new a data structure for storing retrieval information
-    # retrieval_table = None
+class TxtToTex(object):
+    # name, the name of target file
+    # retrieval_table, the table using pandas to store retrieving information
+    # index, for sort table and index when searching
+    # output, the output file what user defines
 
     # pattern of regular expression
+    # match <tag>contents</tag>
     xml_tag_retrieve = re.compile(r"(<.*?>)(.*?)(</.*?>)")
+    # match <tag>contents, this regrex is used for defining table because there is one line is to be header.
     tag_first_row_retrieve = re.compile(r"(<.*?>)(\w+)")
 
-    def __init__(self, name, table):
+    def __init__(self, name, table, output):
         self.name = name
         self.retrieval_table = table
         self.index = 0
+        self.output = file(output, "w")
 
     def documentclass(self, documentclass):
-        print "\\documentclass{%s}" % (documentclass)
+        self.output.write("\\documentclass{%s}\n" % (documentclass))
 
     def usepackage(self, usepackage):
-        print "\\usepackage{%s}" % (usepackage)
+        self.output.write("\\usepackage{%s}\n" % (usepackage))
 
     def hline(self):
-        print "\\hline"
+        self.output.write("\\hline\n")
 
     def begin_one_parameter(self, begin):
-        print "\\begin{%s}" % (begin)
+        self.output.write("\n\\begin{%s}\n" % (begin))
 
     def begin_two_parameters(self, begin1, begin2):
-        print "\\begin{%s}{%s}" % (begin1, begin2)
+        self.output.write("\\begin{%s}{%s}\n\n" % (begin1, begin2))
 
     def textcolor(self, color, text):
-        print "\\textcolor{%s}{%s}" % (color, text)
+        self.output.write("\\textcolor{%s}{%s}\n\n" % (color, text))
 
     def end(self, end_tag):
-        print "\\end{%s}" % (end_tag)
+        self.output.write("\\end{%s}\n" % (end_tag))
 
     def includegraphics(self, width, pic):
-        print "\\includegraphics[width={%f}\\textwidth]{%s}" % (width, pic)
+        self.output.write("\\includegraphics[width=%f\\textwidth]{%s}\n" % (width, pic))
 
     def print_table(self, number_of_occurs):
 
@@ -62,7 +67,11 @@ class TxtToTex():
                     for row in table_contents:
                         if table_contents.index(row) == 0:
                             self.hline()
-                        print row.replace(",", " & ") + "\\\\"
+                            self.output.write(row.replace(",", " & ") + "\\\\\n")
+                            self.hline()
+                        else:
+                            self.output.write(row.replace(",", " & ") + "\\\\\n")
+
                     break
                 elif table_occurs < number_of_occurs:
                     continue
@@ -84,9 +93,11 @@ class TxtToTex():
                     # When occurs the ith table that you want
                     table_contents = self.retrieval_table.ix[data_index, "contents"].split()
 
-                    # Refine the retrieved data to be latex format
+                    self.output.write("\n")
                     for row in table_contents:
-                        print row
+                        # all words are no space after split() then refine the format.
+                        self.output.write(row + " ")
+                    self.output.write("\n")
                     break
                 elif table_occurs < number_of_occurs:
                     continue
@@ -107,6 +118,7 @@ class TxtToTex():
                     table_contents = self.retrieval_table.ix[data_index, "contents"].split()
 
                     # print out graphics
+                    # includegraphics(width, figure name)
                     self.includegraphics(0.5, table_contents[0])
                     break
                 elif table_occurs < number_of_occurs:
@@ -126,11 +138,9 @@ class TxtToTex():
         # read txt file line by line
         for line in txt_file.readlines():
             combine_lines += " " + line.rstrip('\n')
-            # tag_retrival = re.search(r"(<.*?>)(.*?)(</.*?>)", combine_lines, re.M)
             regex_result = pattern.search(combine_lines)
 
             if regex_result:
-                # new_file_DT.append((str(tag_retrival.group(1)), str(tag_retrival.group(2))))
                 self.retrieval_table.loc[-1] = [regex_result.group(1), regex_result.group(2), regex_result.group(3),
                                                 self.index]
                 self.retrieval_table.index += 1
@@ -141,29 +151,29 @@ class TxtToTex():
 
 
 def main(argv):
-    # Write output to
-    output_file_name = argv[1]
-    output_file = file(output_file_name, 'w')
-    sys.stdout = output_file
-
+    # new a pandas table for storing data
     retrieval_table = pandas.DataFrame(columns=["open_tag", "contents", "close_tag", "index"])
-    project2 = TxtToTex(argv[0], retrieval_table)
+
+    # new a instance for a parser.
+    project2 = TxtToTex(argv[0], retrieval_table, argv[1])
     project2.info_retrival(TxtToTex.xml_tag_retrieve)
 
-    project2.documentclass("artical")
+    # The top statements from latex file.
+    project2.documentclass("article")
     project2.usepackage("color")
     project2.usepackage("graphicx")
 
+    # Each session retrieved from regrex, after refining format and output.
     project2.begin_one_parameter("document")
     project2.textcolor("red", "ToyLatex")
     project2.print_paragraph(1)
-    project2.print_table(1)
     project2.print_paragraph(2)
+    project2.print_table(1)
+    project2.print_paragraph(3)
     project2.print_graphics(1)
+
+    # End of latex
     project2.end("document")
-
-
-    # print project2.retrieval_table
 
     return
 
