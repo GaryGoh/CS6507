@@ -1,3 +1,0 @@
-i =  0
-i =  1
-<_sre.SRE_Match object at 0x106ac58b8>
